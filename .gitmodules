@@ -1,0 +1,9 @@
+[submodule "submodules/RaspbianSDCardInstallation"]
+	path = submodules/RaspbianSDCardInstallation
+	url = https://github.com/S3ler/RaspbianSDCardInstallation.git
+[submodule "submodules/grafana-plugin-docker"]
+	path = submodules/grafana-plugin-docker
+	url = https://github.com/S3ler/grafana-plugin-docker.git
+[submodule "submodules/docker-mosquitto"]
+	path = submodules/docker-mosquitto
+	url = https://github.com/S3ler/docker-mosquitto.git
