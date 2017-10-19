@@ -18,7 +18,7 @@ x86_64 :
 	@echo "settig the environment to x86_64 (amd64)"
 	${MAKE} -C submodules/grafana-plugin-docker x86_64
 
-install: init_git_submodules rpi build_grafana-plugin
+installrpi: init_git_submodules rpi build_grafana-plugin
 	cd submodules/LuftdatenBoxStarter; docker-compose build LuftdatenBoxStarterRaspberryPi; cd ../..
 	cd arm32v7; docker-compose up -d
 	
