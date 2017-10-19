@@ -4,6 +4,7 @@ all:
 	@echo "all command possible commands:"
 
 init_git_submodules :
+	git submodule init
 	git submodule update --recursive --remote
 	git submodule foreach --recursive git checkout master
 
