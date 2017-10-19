@@ -45,8 +45,6 @@ services:
     image: arm32v7/influxdb
     networks:
       - influxdb
-    ports:
-      - 8086:8086
 
   Chronograf:
     image: arm32v7/chronograf

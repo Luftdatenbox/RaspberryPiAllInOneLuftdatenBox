@@ -45,8 +45,6 @@ services:
     image: amd64/influxdb:alpine
     networks:
       - influxdb
-    ports:
-      - 8086:8086
 
   Chronograf:
     image: amd64/chronograf:alpine
