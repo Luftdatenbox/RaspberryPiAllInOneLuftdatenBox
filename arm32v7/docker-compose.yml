@@ -42,14 +42,14 @@ services:
       - 3000:3000
 
   InfluxDB:
-    image: arm32v7/influxdb:alpine
+    image: arm32v7/influxdb
     networks:
       - influxdb
     ports:
       - 8086:8086
 
   Chronograf:
-    image: arm32v7/chronograf:alpine
+    image: arm32v7/chronograf
     networks:
       - influxdb
       - frontend
