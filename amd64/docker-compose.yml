@@ -19,8 +19,8 @@ services:
       - Grafana:grafana
       - Chronograf:chronograf
     volumes:
-      - certificate:/etc/nginx/certificate
-      - privatekey:/etc/nginx/privatekey
+      - certs:/etc/nginx/certs/
+      - private:/etc/nginx/private/
       - ./Proxy/conf.d/:/etc/nginx/conf.d/
       - ./Proxy/htpasswd/htpasswd:/etc/nginx/htpasswd/.htpasswd
     ports:
@@ -36,8 +36,6 @@ services:
       - Node-Red:node-red
       - Grafana:grafana
       - Chronograf:chronograf
-#    ports:
-#      - 80:80
 
   Node-Red:
     image: nodered/node-red-docker
@@ -46,14 +44,9 @@ services:
       - influxdb
     volumes:
       - noderedv:/data/flows
-#      - certificate:/etc/ssl/certs
-#      - privatekey:/etc/ssl/private
-#      - ./settings.js:/data/settings.js
     links:
       - InfluxDB:influxdb
       - MQTT-Broker:mqtt-broker
-#    ports:
-#      - 1880:1880
 
   Grafana:
     image: s3ler/grafana-plugin
@@ -62,31 +55,21 @@ services:
       - influxdb
     volumes:
       - grafanav:/var/lib/grafana
-#      - certificate:/etc/grafana/certificate
-#      - privatekey:/etc/grafana/privatekey
-#      - ./grafana.ini:/etc/grafana/grafana.ini
-# Environment variables do not work - need to use own grafana.ini file
-#    environment:
-#      - GF_SERVER_PROTOCOL=https
-#      - GF_SERVER_CERT_FILE=/etc/grafana/certificate/selfsignedserver.pem
-#      - GF_SERVER_LEY_FILE=/etc/grafana/privatekey/selfsignedprivkey.pem
     links:
       - InfluxDB:influxdb
-#    ports:
-#      - 3000:3000
 
   InfluxDB:
     image: amd64/influxdb:alpine
     networks:
       - influxdb
+    volumes:
+      - influxdbv:/var/lib/influxdb
 
   Chronograf:
     image: amd64/chronograf:alpine
     networks:
       - influxdb
       - frontend
-#    ports:
-#      - 8888:8888
     links:
       - InfluxDB:influxdb
     command:
@@ -97,12 +80,16 @@ networks:
   influxdb:
 
 volumes:
-  certificate:
+  certs:
     external:
-      name: ssl_certificate
-  privatekey:
+      name: ssl_certs
+  private:
     external:
-      name: ssl_privatekey
+      name: ssl_private
+  csr:
+    external:
+      name: ssl_csr
 
   grafanav:
   noderedv:
+  influxdbv:

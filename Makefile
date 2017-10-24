@@ -19,11 +19,27 @@ x86_64 :
 	@echo "settig the environment to x86_64 (amd64)"
 	${MAKE} -C submodules/grafana-plugin-docker x86_64
 
-installrpi: init_git_submodules rpi build_grafana-plugin
+installsslrpi: init_git_submodules rpi build_grafana-plugin
 	cd submodules/LuftdatenBoxStarter; docker-compose build LuftdatenBoxStarterRaspberryPi; cd ../..
 	cd arm32v7; docker-compose up -d
 	
-install: init_git_submodules x86_64 build_grafana-plugin
+installssl: init_git_submodules x86_64 build_grafana-plugin
 	cd submodules/LuftdatenBoxStarter; docker-compose build LuftdatenBoxStarter; cd ../..
+	@echo "creating self signed csr, crt, key"
+	cd amd64/ssl; docker-compose build; docker-compose up; cd ../..
+	@echo "creating stack"
 	cd amd64; docker-compose up -d
 
+clean: SHELL:=/bin/bash
+clean :
+	@echo "cleaning everything"
+	@echo "stopping all running container"
+	docker stop $(docker ps -a -q)
+	@echo "remove all container"
+	docker rm $(docker ps -a -q)
+	@echo "remove all images"
+	docker rmi -f $(docker images -q)
+	@echo "prune all networks"
+	echo "y" | docker system prune 
+	@echo "prune all volumes"
+	echo "y" | docker volume prune 
