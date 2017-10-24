@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  CreateSelfSignedSSLCertificateAndPrivateKey:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: s3ler/createcertandprivkey:latest
+    volumes:
+      - certificate:/etc/ssl/certs
+      - privatekey:/etc/ssl/private
+
+volumes:
+  certificate:
+  privatekey:
+
+
+

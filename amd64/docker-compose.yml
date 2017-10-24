@@ -1,17 +1,6 @@
 version: '3'
 
 services:
-  LuftdatenBoxStarter:
-    image: s3ler/luftdatenboxstart
-    networks:
-      - frontend
-    links:
-      - Node-Red:node-red
-      - Grafana:grafana
-      - Chronograf:chronograf
-    ports:
-      - 80:80
-
   MQTT-Broker:
     image: amd64/eclipse-mosquitto
     networks:
@@ -20,26 +9,71 @@ services:
       - 1883:1883
       - 9001:9001
 
+  Proxy:
+    image: amd64/nginx
+    networks:
+      - frontend
+    links:
+      - LuftdatenBoxStarter:starterbox
+      - Node-Red:nodered
+      - Grafana:grafana
+      - Chronograf:chronograf
+    volumes:
+      - certificate:/etc/nginx/certificate
+      - privatekey:/etc/nginx/privatekey
+      - ./Proxy/conf.d/:/etc/nginx/conf.d/
+      - ./Proxy/htpasswd/htpasswd:/etc/nginx/htpasswd/.htpasswd
+    ports:
+      - 80:80
+      - 301:301
+      - 443:443
+
+  LuftdatenBoxStarter:
+    image: s3ler/luftdatenboxstart
+    networks:
+      - frontend
+    links:
+      - Node-Red:node-red
+      - Grafana:grafana
+      - Chronograf:chronograf
+#    ports:
+#      - 80:80
+
   Node-Red:
     image: nodered/node-red-docker
     networks:
       - frontend
       - influxdb
+    volumes:
+      - noderedv:/data/flows
+#      - certificate:/etc/ssl/certs
+#      - privatekey:/etc/ssl/private
+#      - ./settings.js:/data/settings.js
     links:
       - InfluxDB:influxdb
       - MQTT-Broker:mqtt-broker
-    ports:
-      - 1880:1880
+#    ports:
+#      - 1880:1880
 
   Grafana:
     image: s3ler/grafana-plugin
     networks:
       - frontend
       - influxdb
+    volumes:
+      - grafanav:/var/lib/grafana
+#      - certificate:/etc/grafana/certificate
+#      - privatekey:/etc/grafana/privatekey
+#      - ./grafana.ini:/etc/grafana/grafana.ini
+# Environment variables do not work - need to use own grafana.ini file
+#    environment:
+#      - GF_SERVER_PROTOCOL=https
+#      - GF_SERVER_CERT_FILE=/etc/grafana/certificate/selfsignedserver.pem
+#      - GF_SERVER_LEY_FILE=/etc/grafana/privatekey/selfsignedprivkey.pem
     links:
       - InfluxDB:influxdb
-    ports:
-      - 3000:3000
+#    ports:
+#      - 3000:3000
 
   InfluxDB:
     image: amd64/influxdb:alpine
@@ -51,8 +85,8 @@ services:
     networks:
       - influxdb
       - frontend
-    ports:
-      - 8888:8888
+#    ports:
+#      - 8888:8888
     links:
       - InfluxDB:influxdb
     command:
@@ -62,3 +96,13 @@ networks:
   frontend:
   influxdb:
 
+volumes:
+  certificate:
+    external:
+      name: ssl_certificate
+  privatekey:
+    external:
+      name: ssl_privatekey
+
+  grafanav:
+  noderedv:
