@@ -7,7 +7,7 @@ services:
       - frontend
     volumes:
       - ./Mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - ca;/mosquitto/ca/
+      - ca:/mosquitto/ca/
       - mqtt:/mosquitto/certs/
       - mqtt:/mosquitto/private/
     ports:
