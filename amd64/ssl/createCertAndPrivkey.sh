@@ -2,27 +2,54 @@
 # source
 # http://crohr.me/journal/2014/generate-self-signed-ssl-certificate-without-prompt-noninteractive-mode.html
 
-# TODO generate the certs only if the files does NOT exist (dont overwrite existing certs)
-# Step 1: Generate a Private Key
-openssl genrsa -des3 -passout pass:x -out server.pass.key 2048
-## Step 3: Remove Passphrase from Key
-openssl rsa -passin pass:x -in server.pass.key -out server.key
-rm server.pass.key
-# Step 2: Generate a CSR (Certificate Signing Request)
-# TODO: if certificate.conf does not exist use the snakeoil stuff
-# TODO: theoratically look for each openssl req key value if it isnt empty and create string
-openssl req -new -key server.key -out server.csr \
+source sslConfig.sh
+
+# Generate CA key
+openssl genrsa -des3 -passout pass:$SelfSignedRootCAPassword -out SelfSignedRootCA.pass.key 2048
+# Remove CA key password
+openssl rsa -passin pass:$SelfSignedRootCAPassword -in SelfSignedRootCA.pass.key -out SelfSignedRootCA.key
+# Generate CA certificate
+openssl req -x509 -new -nodes -key SelfSignedRootCA.key -sha256 -days 1024 -out SelfSignedRootCA.crt \
+  -subj "/C=DE/ST=Bavaria/L=Bamberg/O=Aperture-Science/OU=Aperture Science Enrichment Center"
+
+
+# Generate Proxy key
+openssl genrsa -des3 -passout pass:$ProxyPassword -out proxy.pass.key 2048
+# Remove Proxy key password
+openssl rsa -passin pass:$ProxyPassword -in proxy.pass.key -out proxy.key
+# Generate signing request
+openssl req -new -key proxy.key -out proxy.csr \
   -subj "/C=DE/ST=Bavaria/L=Bamberg/O=Aperture-Science/OU=Aperture Science Enrichment Center/CN=glados.local"
-# Step 4: Generating a Self-Signed Certificate
-openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
-ls -l
-# Step 5: move certificates
-mv server.crt /etc/ssl/certs/server.crt
-mv server.key /etc/ssl/private/server.key
-mv server.csr /etc/ssl/csr/server.csr
-#TODO set correct access rights for cert, key and csr
-# SSLCertificateFile (Certificate/PublicKey) server.crt (aka fullchain.pem)
-# SSLCertificateKeyFile (Private Key) server.key (aka privkey.pem)
-# SSLCertificatAuthorityFile (CA) server.csr (aka ca.csr)
+# Sign Proxy request by 
+openssl x509 -req -in proxy.csr -CA SelfSignedRootCA.crt -CAkey SelfSignedRootCA.key -CAcreateserial -out proxy.crt -days 1024 -sha256
+# clean up
+#rm proxy.key
+rm proxy.csr
 
 
+# Generate MQTT key
+openssl genrsa -des3 -passout pass:$MQTTPassword -out mqtt.pass.key 2048
+# Remove MQTT key password
+openssl rsa -passin pass:$MQTTPassword -in mqtt.pass.key -out mqtt.key
+# Generate signing request
+openssl req -new -key mqtt.key -out mqtt.csr \
+  -subj "/C=DE/ST=Bavaria/L=Bamberg/O=Aperture-Science/OU=Aperture Science Enrichment Center/CN=glados.local"
+# Sign MQTT request by 
+openssl x509 -req -in mqtt.csr -CA SelfSignedRootCA.crt -CAkey SelfSignedRootCA.key -CAcreateserial -out mqtt.crt -days 1024 -sha256
+# clean up
+#rm mqtt.key
+rm mqtt.csr
+
+# remove CA key without password
+rm SelfSignedRootCA.key
+
+# copy files to volumes
+# CA files
+mv SelfSignedRootCA.crt /etc/ca-certificates/selfsignedca/SelfSignedRootCA.crt
+mv SelfSignedRootCA.pass.key /etc/ssl/private/selfsignedca/SelfSignedRootCA.pass.key
+# Proxy files
+mv proxy.crt /etc/ca-certificates/proxy/proxy.crt
+mv proxy.key /etc/ssl/private/proxy/proxy.key
+# MQTT files
+mv mqtt.crt /etc/ca-certificates/mqtt/mqtt.crt
+mv mqtt.key /etc/ssl/private/mqtt/mqtt.key

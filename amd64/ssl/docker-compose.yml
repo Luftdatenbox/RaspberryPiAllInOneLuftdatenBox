@@ -7,14 +7,17 @@ services:
       dockerfile: Dockerfile
     image: s3ler/createcertandprivkey:latest
     volumes:
-      - ./certificate.conf:/certificate.conf
-      - certs:/etc/ssl/certs
-      - private:/etc/ssl/private
-      - csr:/etc/ssl/csr
+      - ./sslConfig.sh:/sslConfig.sh
+      - ca:/etc/ca-certificates/selfsignedca
+      - ca:/etc/ssl/private/selfsignedca
+      - proxy:/etc/ca-certificates/proxy
+      - proxy:/etc/ssl/private/proxy
+      - mqtt:/etc/ca-certificates/mqtt
+      - mqtt:/etc/ssl/private/mqtt
 
 volumes:
-  certs:
-  private:
-  csr:
+  ca:
+  proxy:
+  mqtt:
 
 

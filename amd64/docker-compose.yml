@@ -5,8 +5,14 @@ services:
     image: amd64/eclipse-mosquitto
     networks:
       - frontend
+    volumes:
+      - ./Mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ca;/mosquitto/ca/
+      - mqtt:/mosquitto/certs/
+      - mqtt:/mosquitto/private/
     ports:
       - 1883:1883
+      - 8883:8883
       - 9001:9001
 
   Proxy:
@@ -19,8 +25,8 @@ services:
       - Grafana:grafana
       - Chronograf:chronograf
     volumes:
-      - certs:/etc/nginx/certs/
-      - private:/etc/nginx/private/
+      - proxy:/etc/nginx/certs/
+      - proxy:/etc/nginx/private/
       - ./Proxy/conf.d/:/etc/nginx/conf.d/
       - ./Proxy/htpasswd/htpasswd:/etc/nginx/htpasswd/.htpasswd
     ports:
@@ -80,15 +86,15 @@ networks:
   influxdb:
 
 volumes:
-  certs:
+  ca:
     external:
-      name: ssl_certs
-  private:
+      name: ssl_ca
+  mqtt:
     external:
-      name: ssl_private
-  csr:
+      name: ssl_mqtt
+  proxy:
     external:
-      name: ssl_csr
+      name: ssl_proxy
 
   grafanav:
   noderedv:
