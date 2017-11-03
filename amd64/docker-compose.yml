@@ -63,6 +63,8 @@ services:
       - grafanav:/var/lib/grafana
     links:
       - InfluxDB:influxdb
+    environment:
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:/grafana
 
   InfluxDB:
     image: amd64/influxdb:alpine
@@ -80,6 +82,7 @@ services:
       - InfluxDB:influxdb
     command:
       - --influxdb-url=http://influxdb:8086
+      - --basepath=/chronograf
 
 networks:
   frontend:
