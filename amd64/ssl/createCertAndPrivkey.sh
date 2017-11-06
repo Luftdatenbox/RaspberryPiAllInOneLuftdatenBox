@@ -4,14 +4,86 @@
 
 source sslConfig.sh
 
+# check Configuration
+if [ -z "$IPAddress" ] && [ -z "CN" ]
+then
+    echo "cannot create Self-Signed SSL Certificates IPAddress or CN"
+    exit
+fi
+
+if [ -n "$IPAddress" ]
+then
+    CN=$IPAddress
+fi
+
+if [ -z "$SelfSignedRootCAPassword" ]
+then
+    echo "cannot create Self-Signed SSL Certificates without SelfSignedRootCAPassword"
+    exit
+fi
+
+if [ -z "$ProxyPassword" ]
+then
+    ProxyPassword="x"
+fi
+
+if [ -z "$MQTTPassword" ]
+then
+    MQTTPassword="x"
+fi
+
+if [ -z "$C" ]
+then
+    C="DE"
+fi
+
+if [ -z "$ST" ]
+then
+    ST="Berlin"
+fi
+
+if [ -z "$L" ]
+then
+    L="Berlin"
+fi
+
+if [ -z "$O" ]
+then
+    O="Aperture-Science"
+fi
+
+if [ -z "$OU" ]
+then
+    OU="Aperture Science Enrichment Center"
+fi
+
+if [ -z "$OU" ]
+then
+    OU="Aperture Science Enrichment Center"
+fi
+
+if [ -z "$CN" ]
+then
+    CN="glados.local"
+fi
+
+# print Configuration
+echo "Using following Configuration:"
+echo "C: $C"
+echo "ST: $ST"
+echo "L: $L"
+echo "O: $O"
+echo "OU: $OU"
+echo "CN: $CN"
+
+
 # Generate CA key
 openssl genrsa -des3 -passout pass:$SelfSignedRootCAPassword -out SelfSignedRootCA.pass.key 2048
 # Remove CA key password
 openssl rsa -passin pass:$SelfSignedRootCAPassword -in SelfSignedRootCA.pass.key -out SelfSignedRootCA.key
 # Generate CA certificate
 openssl req -x509 -new -nodes -key SelfSignedRootCA.key -sha256 -days 1024 -out SelfSignedRootCA.crt \
-  -subj "/C=DE/ST=Bavaria/L=Bamberg/O=Aperture-Science/OU=Aperture Science Enrichment Center"
-
+  -subj "/C=$C/ST=$ST/L=$L/O=$O/OU=$OU"
 
 # Generate Proxy key
 openssl genrsa -des3 -passout pass:$ProxyPassword -out proxy.pass.key 2048
@@ -19,7 +91,7 @@ openssl genrsa -des3 -passout pass:$ProxyPassword -out proxy.pass.key 2048
 openssl rsa -passin pass:$ProxyPassword -in proxy.pass.key -out proxy.key
 # Generate signing request
 openssl req -new -key proxy.key -out proxy.csr \
-  -subj "/C=DE/ST=Bavaria/L=Bamberg/O=Aperture-Science/OU=Aperture Science Enrichment Center/CN=glados.local"
+  -subj "/C=$C/ST=$ST/L=$L/O=$O/OU=$OU/CN=$CN"
 # Sign Proxy request by 
 openssl x509 -req -in proxy.csr -CA SelfSignedRootCA.crt -CAkey SelfSignedRootCA.key -CAcreateserial -out proxy.crt -days 1024 -sha256
 # clean up
@@ -33,7 +105,7 @@ openssl genrsa -des3 -passout pass:$MQTTPassword -out mqtt.pass.key 2048
 openssl rsa -passin pass:$MQTTPassword -in mqtt.pass.key -out mqtt.key
 # Generate signing request
 openssl req -new -key mqtt.key -out mqtt.csr \
-  -subj "/C=DE/ST=Bavaria/L=Bamberg/O=Aperture-Science/OU=Aperture Science Enrichment Center/CN=glados.local"
+  -subj "/C=$C/ST=$ST/L=$L/O=$O/OU=$OU/CN=$CN"
 # Sign MQTT request by 
 openssl x509 -req -in mqtt.csr -CA SelfSignedRootCA.crt -CAkey SelfSignedRootCA.key -CAcreateserial -out mqtt.crt -days 1024 -sha256
 # clean up

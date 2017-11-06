@@ -1,8 +1,5 @@
 
 
-all:
-	@echo "all command possible commands:"
-
 init_git_submodules :
 	git submodule init
 	git submodule update --recursive --remote
@@ -26,7 +23,7 @@ installsslrpi: init_git_submodules rpi build_grafana-plugin
 installssl: init_git_submodules x86_64 build_grafana-plugin
 	cd submodules/LuftdatenBoxStarter; docker-compose build LuftdatenBoxStarter; cd ../..
 	@echo "creating self signed csr, crt, key"
-	cd amd64/ssl; docker-compose build; docker-compose up; cd ../..
+	cd amd64/ssl; make clean; make build; make run; cd ../..
 	@echo "creating stack"
 	cd amd64; docker-compose up -d
 
