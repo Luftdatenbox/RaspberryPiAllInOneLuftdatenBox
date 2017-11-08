@@ -3,6 +3,7 @@ version: '3'
 services:
   MQTT-Broker:
     image: amd64/eclipse-mosquitto
+    restart: always
     networks:
       - frontend
     volumes:
@@ -17,13 +18,17 @@ services:
 
   Proxy:
     image: amd64/nginx
+    restart: always
     networks:
       - frontend
+    depends_on:
+      - LuftdatenBoxStarter
     links:
       - LuftdatenBoxStarter:starterbox
       - Node-Red:nodered
       - Grafana:grafana
       - Chronograf:chronograf
+      - Portainer:portainer
     volumes:
       - proxy:/etc/nginx/certs/
       - proxy:/etc/nginx/private/
@@ -36,15 +41,31 @@ services:
 
   LuftdatenBoxStarter:
     image: s3ler/luftdatenboxstart
+    restart: always
     networks:
       - frontend
     links:
       - Node-Red:node-red
       - Grafana:grafana
       - Chronograf:chronograf
+      - Portainer:portainer
+
+  Portainer:
+    image: portainer/portainer:latest
+    restart: always
+    networks:
+      - frontend
+    volumes:
+      - portainerv:/opt/portainer
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    expose:
+      - 9000
+    command:
+      - --no-auth
 
   Node-Red:
     image: nodered/node-red-docker
+    restart: always
     networks:
       - frontend
       - influxdb
@@ -56,6 +77,7 @@ services:
 
   Grafana:
     image: s3ler/grafana-plugin
+    restart: always
     networks:
       - frontend
       - influxdb
@@ -65,9 +87,11 @@ services:
       - InfluxDB:influxdb
     environment:
       - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:/grafana
+      - GF_USERS_DEFAULT_THEME=light
 
   InfluxDB:
     image: amd64/influxdb:alpine
+    restart: always
     networks:
       - influxdb
     volumes:
@@ -75,6 +99,7 @@ services:
 
   Chronograf:
     image: amd64/chronograf:alpine
+    restart: always
     networks:
       - influxdb
       - frontend
@@ -102,3 +127,5 @@ volumes:
   grafanav:
   noderedv:
   influxdbv:
+  portainerv:
+
