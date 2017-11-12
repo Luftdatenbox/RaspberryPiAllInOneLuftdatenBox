@@ -2,7 +2,7 @@ version: '3'
 
 services:
   MQTT-Broker:
-    image: fstehle/eclipse-mosquitto
+    image: fstehle/rpi-mosquitto
     restart: always
     networks:
       - frontend
