@@ -1,64 +1,130 @@
 version: '3'
 
 services:
+  MQTT-Broker:
+    image: fstehle/eclipse-mosquitto
+    restart: always
+    networks:
+      - frontend
+    volumes:
+      - ./Mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ca:/mosquitto/ca/
+      - mqtt:/mosquitto/certs/
+      - mqtt:/mosquitto/private/
+    ports:
+      - 1883:1883
+      - 8883:8883
+      - 9001:9001
+
+  Proxy:
+    image: arm32v7/nginx
+    restart: always
+    networks:
+      - frontend
+    depends_on:
+      - LuftdatenBoxStarter
+    links:
+      - LuftdatenBoxStarter:starterbox
+      - Node-Red:nodered
+      - Grafana:grafana
+      - Chronograf:chronograf
+      - Portainer:portainer
+    volumes:
+      - proxy:/etc/nginx/certs/
+      - proxy:/etc/nginx/private/
+      - ./Proxy/conf.d/:/etc/nginx/conf.d/
+      - ./Proxy/htpasswd/htpasswd:/etc/nginx/htpasswd/.htpasswd
+    ports:
+      - 80:80
+      - 301:301
+      - 443:443
+
   LuftdatenBoxStarter:
     image: s3ler/luftdatenboxstart
+    restart: always
     networks:
       - frontend
     links:
       - Node-Red:node-red
       - Grafana:grafana
       - Chronograf:chronograf
-    ports:
-      - 80:80
+      - Portainer:portainer
 
-  MQTT-Broker:
-    image: fstehle/rpi-mosquitto
+  Portainer:
+    image: portainer/portainer:linux-arm
+    restart: always
     networks:
       - frontend
-    ports:
-      - 1883:1883
-      - 9001:9001
+    volumes:
+      - portainerv:/opt/portainer
+      - '/var/run/docker.sock:/var/run/docker.sock'
+    expose:
+      - 9000
+    command:
+      - --no-auth
 
   Node-Red:
     image: nodered/node-red-docker:rpi
+    restart: always
     networks:
       - frontend
       - influxdb
+    volumes:
+      - noderedv:/data/flows
     links:
       - InfluxDB:influxdb
       - MQTT-Broker:mqtt-broker
-    ports:
-      - 1880:1880
 
   Grafana:
     image: s3ler/grafana-plugin
+    restart: always
     networks:
       - frontend
       - influxdb
+    volumes:
+      - grafanav:/var/lib/grafana
     links:
       - InfluxDB:influxdb
-    ports:
-      - 3000:3000
+    environment:
+      - GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s:/grafana
+      - GF_USERS_DEFAULT_THEME=light
 
   InfluxDB:
     image: arm32v7/influxdb
+    restart: always
     networks:
       - influxdb
+    volumes:
+      - influxdbv:/var/lib/influxdb
 
   Chronograf:
     image: arm32v7/chronograf
+    restart: always
     networks:
       - influxdb
       - frontend
-    ports:
-      - 8888:8888
     links:
       - InfluxDB:influxdb
     command:
       - --influxdb-url=http://influxdb:8086
+      - --basepath=/chronograf
 
 networks:
   frontend:
   influxdb:
 
+volumes:
+  ca:
+    external:
+      name: ssl_ca
+  mqtt:
+    external:
+      name: ssl_mqtt
+  proxy:
+    external:
+      name: ssl_proxy
+
+  grafanav:
+  noderedv:
+  influxdbv:
+  portainerv:

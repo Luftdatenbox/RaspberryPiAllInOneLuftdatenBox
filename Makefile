@@ -18,8 +18,11 @@ x86_64 :
 
 installsslrpi: init_git_submodules rpi build_grafana-plugin
 	cd submodules/LuftdatenBoxStarter; docker-compose build LuftdatenBoxStarterRaspberryPi; cd ../..
+	@echo "creating self signed csr, crt, key"
+	cd arm32v7/ssl; make clean; make build; make run; cd ../..
+	@echo "creating stack"
 	cd arm32v7; docker-compose up -d
-	
+
 installssl: init_git_submodules x86_64 build_grafana-plugin
 	cd submodules/LuftdatenBoxStarter; docker-compose build LuftdatenBoxStarter; cd ../..
 	@echo "creating self signed csr, crt, key"

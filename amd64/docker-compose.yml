@@ -128,4 +128,3 @@ volumes:
   noderedv:
   influxdbv:
   portainerv:
-
