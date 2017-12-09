@@ -59,6 +59,9 @@ services:
       - frontend
     volumes:
       - htpasswdv:/usr/src/app/htpasswd/
+    environment:
+       - BASE_URL=usermanagement
+       - NODE_ENV=production
 
   Portainer:
     image: portainer/portainer:latest
