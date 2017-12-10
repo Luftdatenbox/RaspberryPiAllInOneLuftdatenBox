@@ -5,41 +5,51 @@ init_git_submodules :
 	git submodule update --recursive --remote
 	git submodule foreach --recursive git checkout master
 
-build_grafana-plugin :
-	${MAKE} -C submodules/grafana-plugin-docker build_grafana_plugin
-
-rpi :
-	@echo "settig the environment to Raspberry Pi (arm32v7)"
-	${MAKE} -C submodules/grafana-plugin-docker rpi
-
-x86_64 :
-	@echo "settig the environment to x86_64 (amd64)"
-	${MAKE} -C submodules/grafana-plugin-docker x86_64
-
-installsslrpi: init_git_submodules rpi build_grafana-plugin
-	cd submodules/LuftdatenBoxStarter; docker-compose build LuftdatenBoxStarterRaspberryPi; cd ../..
+build: init_git_submodules 
+	@echo "building grafana with plugins"
+	${MAKE} -C submodules/grafana-plugin-docker build
+	@echo "building LuftdatenBoxStarter"
+	${MAKE} -C submodules/LuftdatenBoxStarter build
+	@echo "building htpasswdUserManagement"
+	${MAKE} -C submodules/htpasswdUserManagement build
 	@echo "creating self signed csr, crt, key"
-	cd arm32v7/ssl; make clean; make build; make run; cd ../..
-	@echo "creating stack"
-	cd arm32v7; docker-compose up -d
-
-installssl: init_git_submodules x86_64 build_grafana-plugin
-	cd submodules/LuftdatenBoxStarter; docker-compose build LuftdatenBoxStarter; cd ../..
-	@echo "creating self signed csr, crt, key"
-	cd amd64/ssl; make clean; make build; make run; cd ../..
-	@echo "creating stack"
+	${MAKE} -C amd64/ssl build
+	${MAKE} -C amd64/ssl run
+	@echo "done"
+start:
+	@echo "starting"
 	cd amd64; docker-compose up -d
 
-clean: SHELL:=/bin/bash
+stop:
+	@echo "stopping"
+	cd amd64; docker-compose down
+
+build_rpi: init_git_submodules 
+	@echo "building grafana with plugins"
+	${MAKE} -C submodules/grafana-plugin-docker build_rpi
+	@echo "building LuftdatenBoxStarter"
+	${MAKE} -C submodules/LuftdatenBoxStarter build_rpi
+	@echo "building htpasswdUserManagement"
+	${MAKE} -C submodules/htpasswdUserManagement build_rpi
+	@echo "creating self signed csr, crt, key"
+	${MAKE} -C arm32v7/ssl build
+	${MAKE} -C arm32v7/ssl run
+	@echo "creating stack"
+
+run_rpi:
+	cd arm32v7; docker-compose up -d
+
 clean :
 	@echo "cleaning everything"
 	@echo "stopping all running container"
 	docker stop $(docker ps -a -q)
 	@echo "remove all container"
-	docker rm $(docker ps -a -q)
+	docker rm -f $(docker ps -a -q)
 	@echo "remove all images"
 	docker rmi -f $(docker images -q)
 	@echo "prune all networks"
-	echo "y" | docker system prune 
+	echo "y" | docker system prune
 	@echo "prune all volumes"
-	echo "y" | docker volume prune 
+	echo "y" | docker volume prune
+
+
