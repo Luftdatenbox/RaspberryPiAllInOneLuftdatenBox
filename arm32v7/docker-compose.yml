@@ -12,7 +12,7 @@ services:
       - mqtt:/mosquitto/certs/
       - mqtt:/mosquitto/private/
     ports:
-#      - 1883:1883
+      - 1883:1883
 #      - 8883:8883
 #      - 9001:9001
 
