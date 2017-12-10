@@ -4,9 +4,9 @@ clean:
 	docker-compose down --rmi all
 	./removeVolumesForcefully.sh
 
-build:
+build_rpi:
 	docker-compose build
 
-run:
+run_rpi:
 	./configOwnIPAddress.sh
 	docker-compose up

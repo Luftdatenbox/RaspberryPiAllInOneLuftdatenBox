@@ -12,9 +12,9 @@ services:
       - mqtt:/mosquitto/certs/
       - mqtt:/mosquitto/private/
     ports:
-      - 1883:1883
-      - 8883:8883
-      - 9001:9001
+#      - 1883:1883
+#      - 8883:8883
+#      - 9001:9001
 
   Proxy:
     image: arm32v7/nginx
@@ -28,12 +28,13 @@ services:
       - Node-Red:nodered
       - Grafana:grafana
       - Chronograf:chronograf
+      - UserManagement:usermanagement
       - Portainer:portainer
     volumes:
       - proxy:/etc/nginx/certs/
       - proxy:/etc/nginx/private/
       - ./Proxy/conf.d/:/etc/nginx/conf.d/
-      - ./Proxy/htpasswd/htpasswd:/etc/nginx/htpasswd/.htpasswd
+      - htpasswdv:/etc/nginx/htpasswd/
     ports:
       - 80:80
       - 301:301
@@ -49,6 +50,17 @@ services:
       - Grafana:grafana
       - Chronograf:chronograf
       - Portainer:portainer
+
+  UserManagement:
+    image: s3ler/htpasswdusermanagement
+    restart: always
+    networks:
+      - frontend
+    volumes:
+      - htpasswdv:/usr/src/app/htpasswd/
+    environment:
+       - BASE_URL=usermanagement
+       - NODE_ENV=production
 
   Portainer:
     image: portainer/portainer:linux-arm
@@ -114,6 +126,17 @@ networks:
   influxdb:
 
 volumes:
+
+  htpasswdv:
+
+  grafanav:
+
+  noderedv:
+
+  influxdbv:
+
+  portainerv:
+
   ca:
     external:
       name: ssl_ca
@@ -124,7 +147,3 @@ volumes:
     external:
       name: ssl_proxy
 
-  grafanav:
-  noderedv:
-  influxdbv:
-  portainerv:

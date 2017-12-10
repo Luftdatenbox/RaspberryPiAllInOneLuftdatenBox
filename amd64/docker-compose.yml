@@ -13,8 +13,8 @@ services:
       - mqtt:/mosquitto/private/
     ports:
       - 1883:1883
-      - 8883:8883
-      - 9001:9001
+#      - 8883:8883
+#      - 9001:9001
 
   Proxy:
     image: amd64/nginx
