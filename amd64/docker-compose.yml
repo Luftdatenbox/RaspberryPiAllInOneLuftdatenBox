@@ -55,7 +55,51 @@ services:
       - MQTT-Broker:mqtt-broker
 
   Grafana:
-    image: s3ler/grafana-plugin
+    image: grafana:latest-with-plugins
+    build:
+      context: ${PWD}/grafana/packaging/docker/custom/
+      dockerfile: ${PWD}/grafana/packaging/docker/custom/Dockerfile
+      args:
+        - GRAFANA_VERSION=latest
+        - "GF_INSTALL_PLUGINS=GF_INSTALL_PLUGINS=
+                             grafana-worldmap-panel,
+                             grafana-clock-panel,
+                             grafana-piechart-panel,
+                             satellogic-3d-globe-panel,
+                             ryantxu-ajax-panel,
+                             btplc-alarm-box-panel,
+                             novalabs-annotations-panel,
+                             michaeldmoore-annunciator-panel,
+                             yesoreyeram-boomtable-panel,
+                             digiapulssi-breadcrumb-panel,
+                             digrich-bubblechart-panel,
+                             neocat-cal-heatmap-panel,
+                             petrslavotinek-carpetplot-panel,
+                             briangann-gauge-panel,
+                             briangann-datatable-panel,
+                             jdbranham-diagram-panel,
+                             natel-discrete-panel,
+                             citilogics-geoloop-panel,
+                             savantly-heatmap-panel,
+                             mtanda-heatmap-epoch-panel,
+                             mtanda-histogram-panel,
+                             natel-influx-admin-panel,
+                             digiapulssi-organisations-panel,
+                             zuburqan-parity-report-panel,
+                             btplc-peak-report-panel,
+                             bessler-pictureit-panel,
+                             natel-plotly-panel,
+                             snuids-radar-panel,
+                             blackmirror1-singlestat-math-panel,
+                             blackmirror1-statusbygroup-panel,
+                             btplc-status-dot-panel,
+                             vonage-status-panel,
+                             flant-statusmap-panel,
+                             marcuscalidus-svg-panel,
+                             snuids-trafficlights-panel,
+                             smartmakers-trafficlight-panel,
+                             btplc-trend-box-panel,
+                             fatcloud-windrose-panel"
     networks:
       - frontend
       - influxdb
@@ -75,14 +119,17 @@ services:
 
   Chronograf:
     image: amd64/chronograf:alpine
+    environment:
+      BASE_PATH: /chronograf
+      INFLUXDB_URL: http://influxdb:8086
     networks:
       - influxdb
       - frontend
     links:
       - InfluxDB:influxdb
-    command:
-      - --influxdb-url=http://influxdb:8086
-      - --basepath=/chronograf
+    ports:
+      - 8888:8888
+
 
 networks:
   frontend:

@@ -7,3 +7,6 @@
 [submodule "submodules/LuftdatenBoxStarter"]
 	path = submodules/LuftdatenBoxStarter
 	url = https://github.com/S3ler/LuftdatenBoxStarter.git
+[submodule "submodules/grafana"]
+	path = submodules/grafana
+	url = https://github.com/grafana/grafana.git
